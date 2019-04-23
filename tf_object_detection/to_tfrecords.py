@@ -14,6 +14,8 @@ The tfrecords come without any image augmentation.
 The created tfrecords will be about 18GB.
 
 Usage:
+    export PYTHONPATH=$PYTHONPATH:~/src/udacity/CarND-Capstone-Root/bstld
+
     In the folder with the extracted traffic lights dataset, run
     python /path/to/this/file/to_tfrecords.py
     and it will create the tfrecords there.
@@ -34,8 +36,8 @@ import tqdm
 
 # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md
 from object_detection.utils import dataset_util
-from bstld.read_label_file import get_all_labels
-from bstld.tf_object_detection import constants
+from read_label_file import get_all_labels
+from tf_object_detection import constants
 
 
 def label_id(label_string):
@@ -141,6 +143,20 @@ def split_train_labels(train_labels):
     return train_labels[num_valid_samples:], train_labels[:num_valid_samples]
 
 
+def create_train_dataset(config):
+    """ Splits labels and creates datasets """
+    train_labels = get_all_labels(config['train_yaml'])
+
+    if not os.path.isdir(config['dataset_folder']) or\
+            not os.path.isdir(os.path.join(config['dataset_folder'], 'rgb')):
+        print('Dataset_folder needs to contain extracted dataset, including the rgb folder')
+        print('{} does not fulfill those requirements'.format(config['dataset_folder']))
+
+    create_object_detection_tfrecords(
+        train_labels, config['train_tfrecord'], config['dataset_folder'], 'train')
+
+    print('Done creating tfrecords')
+
 def create_datasets(config):
     """ Splits labels and creates datasets """
     train_labels = get_all_labels(config['train_yaml'])
@@ -191,4 +207,5 @@ def parse_args():
 
 if __name__ == '__main__':
     config = parse_args()
-    create_datasets(config)
+    # create_datasets(config)
+    create_train_dataset(config)
